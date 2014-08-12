@@ -5,7 +5,7 @@ export GOPATH=$(CURDIR)
 GC=go build
 GOGET=go get
 GOFMT=gofmt -w
-MAIN=red_wall
+MAIN=redwall
 
 all: build
 

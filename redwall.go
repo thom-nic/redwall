@@ -8,7 +8,10 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"log"
 	"net/http"
+	"os"
 	"path"
+	"strings"
+	"time"
 )
 
 type Item struct {
@@ -84,9 +87,9 @@ func Download(items []Item, destDir string, err error) (string, error) {
 		// TODO: check file existence first with io.IsExist
 		// base file name on permalink
 		if strings.HasSuffix(item.URL, ".jpg") || strings.HasSuffix(item.URL, ".png") {
-			outPath = path.join(destDir, fileName)
+			outPath := path.Join(destDir, fileName)
 			output, err := os.Create(outPath)
-			if err != nil {   q
+			if err != nil {
 				log.Fatal("Can't open output file", outPath)
 				continue
 			}
@@ -106,7 +109,29 @@ func Download(items []Item, destDir string, err error) (string, error) {
 			}
 		}
 	}
+}
 
+func CleanOldWallpapers(destDir string, age string) {
+	dur = time.ParseDuration(age)
+	dir, err := os.Open(destDir)
+	if err != nil {
+		log.Fatal("Error opening dest file", destDir)
+		return
+	}
+	defer dir.Close()
+
+	for i, fstat := range dir.Readdir(0) {
+		if fstat.IsDir() {
+			continue
+		}
+		if fstat.ModTime().Add(dur).Before(time.Time.Now()) {
+			fmt.Println("Deleting file", fstat.Name())
+			err = os.Remove(path.Join(destDir, fstat.Name()))
+			if err != nil {
+				log.Fatal("Error deleting", fstat.Name())
+			}
+		}
+	}
 }
 
 func Email(items []Item, err error) (string, error) {
